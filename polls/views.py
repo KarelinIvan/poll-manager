@@ -2,56 +2,45 @@ from django.db.models import F
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
+from django.views import generic
 
 from polls.models import Choice, Question
 
 
-def index(request):
+class IndexView(generic.ListView):
     """
-    Отображает последние пять опубликованных вопросов.
     Получает список объектов Question, отсортированных по дате публикации
     (от новых к старым), и передает их в шаблон для отображения на главной
     странице раздела опросов.
-    Args:
-        request: Объект HttpRequest, представляющий входящий HTTP-запрос.
-    Returns: Объект HttpResponse с отрендеренным HTML-кодом
-    страницы polls/index.html.
     """
 
-    latest_question_list = Question.objects.order_by("-pub_date")[:5]
-    context = {"latest_question_list": latest_question_list}
-    return render(request, "polls/index.html", context)
+    template_name = "polls/index.html"
+    context_object_name = "latest_question_list"
+
+    def get_queryset(self):
+        """Отображает последние пять опубликованных вопросов."""
+        return Question.objects.order_by("-pub_date")[:5]
 
 
-def detail(request, question_id):
+class DetailView(generic.DeleteView):
     """
     Отображает страницу с деталями конкретного вопроса для голосования.
     Пытается найти вопрос по его первичному ключу (id).
-    Если вопрос не найден, автоматически выбрасывает исключение Http404.
-    Args:
-        request: Объект HttpRequest.
-        question_id: Первичный ключ (ID) вопроса, который нужно отобразить.
-    Returns: Объект HttpResponse с отрендеренным HTML-кодом
-    страницы polls/detail.html.
     """
-    question = get_object_or_404(Question, pk=question_id)
-    return render(request, "polls/detail.html", {"question": question})
+
+    model = Question
+    template_name = "polls/detail.html"
 
 
-def results(request, question_id):
+class ResultsView(generic.DetailView):
     """
     Отображает страницу с результатами голосования по конкретному вопросу.
     Аналогично функции detail, получает объект Question по ID и передает его
     в соответствующий шаблон для отображения статистики голосов.
-    Args:
-        request: Объект HttpRequest.
-        question_id: Первичный ключ (ID) вопроса, результаты которого нужно
-                    показать.
-    Returns: Объект HttpResponse с отрендеренным HTML-кодом
-    страницы polls/results.html.
     """
-    question = get_object_or_404(Question, pk=question_id)
-    return render(request, "polls/results.html", {"question": question})
+
+    model = Question
+    template_name = "polls/results.html"
 
 
 def vote(request, question_id):
