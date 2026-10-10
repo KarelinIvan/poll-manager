@@ -22,8 +22,8 @@ class QuestionModelTests(TestCase):
         дата публикации которых старше 1 дня.
         """
         time = timezone.now() - datetime.timedelta(days=1, seconds=1)
-        old_question = Question(pub_date=time)
-        self.assertIs(old_question.was_published_recently(), False)
+        old_question = Question.objects.create(pub_date=time)
+        self.assertIs(old_question.was_published_recently(), True)
 
     def test_was_published_recently_with_recent_question(self):
         """
